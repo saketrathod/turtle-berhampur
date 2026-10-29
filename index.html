@@ -1,0 +1,74 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Turtle Berhampur: check stock</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#f1f4f4;--card:#fff;--ink:#14232b;--mute:#5d6d74;--acc:#0f6b5c;--accink:#fff;--line:#d5dddf;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10181c;--card:#18242a;--ink:#e8eff1;--mute:#93a4ab;--acc:#4cc2ab;--accink:#06231d;--line:#2b3b43}}
+:root[data-theme="dark"]{--bg:#10181c;--card:#18242a;--ink:#e8eff1;--mute:#93a4ab;--acc:#4cc2ab;--accink:#06231d;--line:#2b3b43}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.45 Figtree,system-ui,sans-serif}
+header{padding:20px 16px 8px;max-width:1000px;margin:auto}h1{font-size:26px;font-weight:800;margin:0 0 4px}
+p.sub{margin:0;color:var(--mute)}.bar{max-width:1000px;margin:auto;padding:8px 16px;display:flex;flex-direction:column;gap:10px}
+input,button{font:inherit}input[type=search],.f input{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 14px;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--acc);color:var(--accink);border-color:var(--acc)}
+.upl{font-size:14px;color:var(--mute)}.upl input{margin-left:6px;max-width:100%}
+main{max-width:1000px;margin:auto;padding:8px 16px 40px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+.tile{height:130px;display:flex;align-items:flex-end;padding:12px;font-weight:800;font-size:22px;color:#fff}
+.body{padding:12px;display:flex;flex-direction:column;gap:8px;flex:1}.code{color:var(--mute);font-size:13px}.price{font-weight:600}
+.sz{display:flex;flex-wrap:wrap;gap:6px}.sz button{min-width:42px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--ink);cursor:pointer}
+.sz button[disabled]{opacity:.35;text-decoration:line-through;cursor:not-allowed}.sz button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.low{font-size:12px;color:var(--mute)}
+.go{margin-top:auto;padding:10px;border:0;border-radius:8px;background:var(--acc);color:var(--accink);font-weight:600;cursor:pointer}.go[disabled]{opacity:.4;cursor:not-allowed}
+button:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+dialog{border:0;border-radius:14px;padding:20px;width:min(92vw,380px);background:var(--card);color:var(--ink)}dialog::backdrop{background:#0008}
+.f{display:flex;flex-direction:column;gap:10px;margin:12px 0}.code2{font-size:30px;font-weight:800;color:var(--acc)}
+.empty{grid-column:1/-1;color:var(--mute);padding:30px 0}
+</style></head><body>
+<header><h1>Turtle, Urban Bank Road, Berhampur</h1><p class="sub">Check what’s in stock and reserve it. Pay and collect at the shop.</p></header>
+<div class="bar"><input id="q" type="search" placeholder="Search by style code, e.g. 17661A" aria-label="Search by style code">
+<div class="chips" id="chips"></div>
+<div class="upl" id="info">Loading today’s stock…</div></div>
+<main id="grid"></main>
+<dialog id="dlg"><div id="dbody"></div></dialog>
+<script>
+const CAT={OTSH:'Shirts',OTTR:'Trousers',OTJT:'Jeans',OTJK:'Blazers',OTSU:'Suits',OTWC:'Windcheaters',OTPO:'Pullovers',OTTS:'T-shirts',OTAC:'Accessories',OTGL:'Gilets',OTSP:'Promotional items'};
+let items=([["OTSH","23817A","1009",1399,{"38":1,"40":2,"39":1,"44":2,"42":2}],["OTSH","91996","1007",1899,{"44":1,"40":3,"42":4}],["OTSH","700283","1001",1899,{"40":1,"44":2,"42":2,"39":2}],["OTSH","23820","1001",2299,{"40":2,"42":2,"39":2}],["OTSH","400024","1001",1799,{"40":2,"44":1,"42":2,"39":1}],["OTSH","400045","1001",1599,{"39":1,"40":2,"44":1,"42":2}],["OTTR","13291","1005",1999,{"32":2,"38":1,"30":3,"34":1,"36":1}],["OTTR","13291A","1003",1999,{"30":2,"34":2,"36":2,"32":2}],["OTTR","13291","1002",1999,{"38":1,"36":3,"32":2,"30":1}],["OTTR","100003","1004",1999,{"38":1,"40":1,"36":1,"34":2,"32":1}],["OTTR","100003","1005",1999,{"32":2,"30":1,"34":2,"36":1}],["OTTR","100006","1001",2099,{"34":2,"36":1,"30":1,"32":1,"38":1}],["OTJT","17661A","1003",2599,{"40":1,"30":2,"32":1,"34":2,"36":2,"38":2}],["OTJT","17742","1001",2299,{"36":3,"34":3,"32":3}],["OTJT","17836","1001",2299,{"34":3,"30":1,"32":3,"36":1}],["OTJT","17840","1001",2299,{"34":2,"36":2,"30":1,"38":1,"32":2}],["OTJT","17844","1001",2299,{"32":3,"30":1,"36":1,"34":3}],["OTJT","17855","1001",2499,{"32":3,"30":1,"34":3,"36":1}],["OTJK","6643","1001",5999,{"44":2,"40":1,"38":2,"42":1}],["OTJK","6715","1001",3999,{"42":1,"44":2,"40":2,"38":1}],["OTJK","6163","1002",5499,{"38":1,"40":2,"36":1,"42":1}],["OTJK","6670N","1002",5799,{"40":1,"44":1,"38":1,"42":1,"46":1}],["OTJK","6670N","1003",5799,{"40":1,"38":1,"46":1,"42":1,"44":1}],["OTJK","500003","1001",5499,{"40":1,"38":1,"44":1,"42":1}],["OTSU","5206A","1001",11549,{"44":1,"38":2,"36":1,"46":1,"40":1}],["OTSU","5233RN","1001",15799,{"40":1,"44":1,"36":1,"46":1,"38":1,"42":1}],["OTSU","5262N","1001",8499,{"42":1,"38":1,"40":1,"46":1,"44":2}],["OTSU","5263N","1003",9499,{"44":2,"38":1,"40":1,"42":1,"46":1}],["OTSU","5202A","1003",9449,{"42":1,"38":1,"36":1,"40":1,"44":1}],["OTSU","5207A","1001",10499,{"38":1,"40":1,"44":1,"36":1,"42":1}],["OTTS","350005","1001",1499,{"XL":1,"M":1,"L":2,"XXL":1,"S":1}],["OTTS","350008","1001",1599,{"XXL":1,"XL":1,"M":1,"S":1,"L":2}],["OTTS","350011","1001",1399,{"XXL":1,"L":2,"M":1,"XL":1,"S":1}],["OTTS","350038","1001",1499,{"M":1,"XL":1,"XXL":1,"L":1,"S":2}],["OTTS","350041","1001",1599,{"XXL":1,"S":1,"M":1,"L":1,"XL":2}],["OTTS","350041","1002",1599,{"XL":1,"M":2,"L":2,"S":1}]]).map(r=>({cat:r[0],st:r[1],col:r[2],mrp:r[3],sz:r[4]}));
+const HIDE=['OTSP'];let cat='ALL',sel={},pick=null;
+const $=id=>document.getElementById(id);
+const name=c=>CAT[c]||('Other ('+c+')');
+const order=k=>{const n=parseFloat(k);return isNaN(n)?100+['S','M','L','XL','XXL'].indexOf(k):n};
+function parse(t){const L=t.split(/\r?\n/).filter(Boolean),sp=l=>{const o=[];let c='',q=false;for(const ch of l){if(ch=='"')q=!q;else if(ch==','&&!q){o.push(c);c=''}else c+=ch}o.push(c);return o};
+const h=sp(L.shift()).map(x=>x.trim()),a=h.indexOf('Variant SKU *'),m=h.indexOf('MRP *'),n=h.indexOf('Inventory *');
+if(a<0||m<0||n<0)return null;const g={};
+for(const l of L){const r=sp(l),p=r[a].split('-'),q=parseInt(r[n]);if(p.length<4||!(q>0))continue;const k=p[0]+'|'+p[1]+'|'+p[2];
+const o=g[k]||(g[k]={cat:p[0],st:p[1],col:p[2],mrp:0,sz:{}});o.mrp=Math.max(o.mrp,+r[m]);o.sz[p[3]]=(o.sz[p[3]]||0)+q}
+return Object.values(g)}
+function chips(){const cs=['ALL',...new Set(items.filter(i=>!HIDE.includes(i.cat)).map(i=>i.cat))];$('chips').innerHTML=cs.map(c=>`<button class="chip" aria-pressed="${c==cat}" data-c="${c}">${c=='ALL'?'All':name(c)}</button>`).join('')}
+$('chips').onclick=e=>{const c=e.target.dataset.c;if(c){cat=c;draw()}};$('q').oninput=draw;
+function hue(s){let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%360;return h}
+function draw(){chips();const q=$('q').value.trim().toLowerCase();
+const l=items.filter(i=>!HIDE.includes(i.cat)&&(cat=='ALL'||i.cat==cat)&&(!q||(i.st+i.col).toLowerCase().includes(q)));
+$('grid').innerHTML=l.length?l.map(i=>{const id=i.cat+i.st+i.col,ks=Object.keys(i.sz).sort((a,b)=>order(a)-order(b));
+return `<div class="card"><div class="tile" style="background:hsl(${hue(id)} 35% 32%)">${name(i.cat)}</div><div class="body">
+<div><b>${i.st}</b> <span class="code">colour ${i.col}</span></div><div class="price">₹${i.mrp.toLocaleString('en-IN')}</div>
+<div class="sz">${ks.map(k=>`<button data-id="${id}" data-k="${k}" aria-pressed="${sel[id]==k}" ${i.sz[k]>0?'':'disabled'} aria-label="Size ${k}, ${i.sz[k]} in stock">${k}</button>`).join('')}</div>
+<div class="low">${sel[id]&&i.sz[sel[id]]==1?'Last piece in this size':'Tap a size to reserve'}</div>
+<button class="go" data-r="${id}" ${sel[id]?'':'disabled'}>Reserve ${sel[id]?'size '+sel[id]:''}</button></div></div>`}).join(''):'<div class="empty">Nothing matches. Try another category or style code.</div>'}
+$('grid').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+if(b.dataset.k){sel[b.dataset.id]=b.dataset.k;draw()}
+if(b.dataset.r){pick=b.dataset.r;const i=items.find(x=>x.cat+x.st+x.col==pick);
+$('dbody').innerHTML=`<h2 style="margin:0">Reserve for pickup</h2><p>${name(i.cat)} ${i.st}, size ${sel[pick]}, ₹${i.mrp.toLocaleString('en-IN')}</p>
+<div class="f"><input id="nm" placeholder="Your name" aria-label="Your name"><input id="ph" type="tel" placeholder="Phone number" aria-label="Phone number"></div>
+<button class="go" id="ok" style="width:100%">Confirm reservation</button> <button class="chip" id="no" style="margin-top:8px">Cancel</button>`;$('dlg').showModal();
+$('no').onclick=()=>$('dlg').close();
+$('ok').onclick=()=>{const n=$('nm').value.trim(),p=$('ph').value.trim();if(!n||p.length<10){$('ph').focus();return}
+const k=sel[pick];i.sz[k]--;const code='R-'+Math.floor(1000+Math.random()*9000);
+$('dbody').innerHTML=`<h2 style="margin:0">Almost done, ${n}</h2><p>Tap below and press Send in WhatsApp to confirm your reservation. Pay at the shop.</p><a class="go" style="display:block;text-align:center;text-decoration:none;margin:10px 0" target="_blank" rel="noopener" href="https://wa.me/919937027975?text=${encodeURIComponent('Hi, I would like to reserve '+name(i.cat)+' '+i.st+', colour '+i.col+', size '+k+' (₹'+i.mrp+'). Name: '+n+'. Phone: '+p+'. Code: '+code)}">Send reservation on WhatsApp</a><div class="code2">${code}</div><p class="code">${name(i.cat)} ${i.st}, size ${k}</p><button class="go" id="x" style="width:100%">Done</button>`;
+$('x').onclick=()=>{$('dlg').close();delete sel[pick];draw()}}}};
+draw();
+fetch('stock.csv?t='+Date.now()).then(r=>{if(!r.ok)throw 0;return r.text()}).then(t=>{const r=parse(t);if(!r||!r.length)throw 0;items=r;draw();
+$('info').textContent=r.length+' styles in stock. Updated daily.'}).catch(()=>{$('info').textContent='Could not load today’s stock. Showing a sample list. Please call the shop to confirm.'});
+</script></body></html>
